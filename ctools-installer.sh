@@ -1,7 +1,7 @@
 #!/bin/bash
 
 INSTALLER=`basename "$0"`
-VER='1.47'
+VER='1.48'
 
 echo
 echo CTOOLS
@@ -15,6 +15,7 @@ echo
 echo
 echo Changelog:
 echo
+echo v1.48 - Saiku plugin 3.1.8, marketplace 5.2-SNAPSHOT, check broken download urls
 echo v1.47 - Removed CDB installation
 echo v1.46 - Added stable versions for Pentaho 5
 echo v1.45 - Added Marketplace, CFR and Sparkl, currently on -b dev only
@@ -239,12 +240,18 @@ download_file () {
 	WGET_FILE="$3"
 	WGET_TARGET_DIR="$4"
 	mkdir -p "$WGET_TARGET_DIR"
-	if [ ! -z "$OFFLINE_REPOSITORY" -a -e "$OFFLINE_REPOSITORY/$BASERVER_VERSION/$BRANCH/$WGET_CTOOL/$WGET_FILE" ]; then
+	OFFLINE_FILE="$OFFLINE_REPOSITORY/$BASERVER_VERSION/$BRANCH/$WGET_CTOOL/$WGET_FILE"
+	if [ ! -z "$OFFLINE_REPOSITORY" -a -e "$OFFLINE_FILE" -a -s "$OFFLINE_FILE" ]; then
 		echo $ECHO_FLAG "Found $WGET_CTOOL in offline repository. "
 		cp "$OFFLINE_REPOSITORY/$BASERVER_VERSION/$BRANCH/$WGET_CTOOL/$WGET_FILE" "$WGET_TARGET_DIR"
 	else
 		echo $ECHO_FLAG "Downloading $WGET_CTOOL..."
 		wget -q --no-check-certificate "$WGET_URL" -O "$WGET_TARGET_DIR/$WGET_FILE"
+		if [ ! -s "$WGET_TARGET_DIR/$WGET_FILE" ]; then
+			rm "$WGET_TARGET_DIR/$WGET_FILE"
+			echo "Downloaded file $WGET_FILE is empty - it could be broken download url"
+			exit 1
+		fi
 		if [ ! -z "$OFFLINE_REPOSITORY" ]; then
 			echo $ECHO_FLAG " Storing $WGET_CTOOL in offline repository... "
 			mkdir -p "$OFFLINE_REPOSITORY/$BASERVER_VERSION/$BRANCH/$WGET_CTOOL" ;
@@ -258,7 +265,7 @@ downloadMarketplace () {
 	if [[ "$BASERVER_VERSION" = "4x" ]]; then
 		URL='http://ci.pentaho.com/job/marketplace-4.8'$URL1'/lastSuccessfulBuild/artifact/dist/marketplace-plugin-TRUNK-SNAPSHOT.zip'
 	else
-		URL='http://ci.pentaho.com/job/marketplace'$URL1'/lastSuccessfulBuild/artifact/dist/marketplace-TRUNK-SNAPSHOT.zip'
+		URL='http://ci.pentaho.com/view/-5.3/job/marketplace-5.3/lastSuccessfulBuild/artifact/dist/marketplace-5.2-SNAPSHOT.zip'
 	fi
 	download_file "Marketplace"  "$URL"  "plugin.zip"  ".tmp/marketplace"
 	rm -f .tmp/dist/marketplace.xml
@@ -274,14 +281,14 @@ downloadCDF () {
 	    then
     		URL='http://ci.pentaho.com/job/pentaho-cdf-pentaho/lastSuccessfulBuild/artifact/cdf-pentaho/dist/*zip*/dist.zip'
     	else
-    	  URL='http://www.webdetails.pt/ficheiros/cdf/14.12.10.1/4.x/dist.zip'
+    	  URL='http://ctools.pentaho.com/files/cdf/15.04.16/4.x/dist.zip'
     	fi
 	else
 	    if  [ $BRANCH = 'dev' ]
 	    then
 		    URL='http://ci.pentaho.com/job/pentaho-cdf/lastSuccessfulBuild/artifact/cdf-pentaho5/dist/*zip*/dist.zip'
 		else
-            URL='http://www.webdetails.pt/ficheiros/cdf/14.12.10.1/5.x/dist.zip'
+            URL='http://ctools.pentaho.com/files/cdf/15.04.16/5.x/dist.zip'
 		fi
 	fi
 	download_file "CDF"  "$URL"  "dist.zip"  ".tmp/cdf"
@@ -299,14 +306,14 @@ downloadCDA (){
 		then
 		    URL='http://ci.pentaho.com/job/pentaho-cda-pentaho/lastSuccessfulBuild/artifact/cda-pentaho/dist/*zip*/dist.zip'
 	    else
-	    	URL='http://www.webdetails.pt/ficheiros/cda/14.12.10/4.x/dist.zip'
+	    	URL='http://ctools.pentaho.com/files/cda/15.04.16/4.x/dist.zip'
 	    fi
 	else
 		if [ $BRANCH = 'dev' ]
 		then
     		URL='http://ci.pentaho.com/job/pentaho-cda/lastSuccessfulBuild/artifact/cda-pentaho5/dist/*zip*/dist.zip'
 	    else
-	    	URL='http://www.webdetails.pt/ficheiros/cda/14.12.10/5.x/dist.zip'
+	    	URL='http://ctools.pentaho.com/files/cda/15.04.16/5.x/dist.zip'
 	    fi
 
 	fi
@@ -324,14 +331,14 @@ downloadCDE (){
 		then
 		    URL='http://ci.pentaho.com/job/pentaho-cde-pentaho/lastSuccessfulBuild/artifact/cde-pentaho/dist/*zip*/dist.zip'
 		else
-		    URL='http://www.webdetails.pt/ficheiros/cde/14.12.10.1/4.x/dist.zip'
+		    URL='http://ctools.pentaho.com/files/cde/15.04.16/4.x/dist.zip'
 		fi
 	else
 		if [ $BRANCH = 'dev' ]
 		then
     		URL='http://ci.pentaho.com/job/pentaho-cde/lastSuccessfulBuild/artifact/cde-pentaho5/dist/*zip*/dist.zip'
 		else
-		    URL='http://www.webdetails.pt/ficheiros/cde/14.12.10.1/5.x/dist.zip'
+		    URL='http://ctools.pentaho.com/files/cde/15.04.16/5.x/dist.zip'
 		fi
 	fi
 	download_file "CDE"  "$URL"  "dist.zip"  ".tmp/cde"
@@ -348,14 +355,14 @@ downloadCGG (){
 		then
 		    URL='http://ci.pentaho.com/job/pentaho-cgg-pentaho/lastSuccessfulBuild/artifact/cgg-pentaho/dist/*zip*/dist.zip'
 		else
-	    	URL='http://www.webdetails.pt/ficheiros/cgg/14.12.10/4.x/dist.zip'
+	    	URL='http://ctools.pentaho.com/files/cgg/15.04.16/4.x/dist.zip'
 	    fi
 	else
 		if [ $BRANCH = 'dev' ]
 		then
     		URL='http://ci.pentaho.com/job/pentaho-cgg/lastSuccessfulBuild/artifact/cgg-pentaho5/dist/*zip*/dist.zip'
     	else
-    	    URL='http://www.webdetails.pt/ficheiros/cgg/14.12.10/5.x/dist.zip'
+    	    URL='http://ctools.pentaho.com/files/cgg/15.04.16/5.x/dist.zip'
     	fi
 	fi
 	download_file "CGG" "$URL" "dist.zip" ".tmp/cgg"
@@ -400,14 +407,14 @@ downloadCDC (){
 		then
 	        URL='http://ci.pentaho.com/job/pentaho-cdc/lastSuccessfulBuild/artifact/cdc-pentaho/dist/*zip*/dist.zip'
 	    else
-	    	URL='http://www.webdetails.pt/ficheiros/cdc/14.12.10/4.x/dist.zip'
+	    	URL='http://ctools.pentaho.com/files/cdc/15.04.16/4.x/dist.zip'
 	    fi
 	else
 		if [ $BRANCH = 'dev' ]
 		then
 	        URL='http://ci.pentaho.com/job/pentaho-cdc/lastSuccessfulBuild/artifact/cdc-pentaho5/dist/*zip*/dist.zip'
 	    else
-	    	URL='http://www.webdetails.pt/ficheiros/cdc/14.12.10/5.x/dist.zip'
+	    	URL='http://ctools.pentaho.com/files/cdc/15.04.16/5.x/dist.zip'
 	    fi
 	fi
 
@@ -426,14 +433,14 @@ downloadCDV (){
 		then
 	        URL='http://ci.pentaho.com/job/pentaho-cdv-pentaho/lastSuccessfulBuild/artifact/cdv-pentaho/dist/*zip*/dist.zip'
 	    else
-	    	URL='http://www.webdetails.pt/ficheiros/cdv/14.10.15/4.x/dist.zip'
+	    	URL='http://ctools.pentaho.com/files/cdv/15.04.16/4.x/dist.zip'
 	    fi
 	else
 		if [ $BRANCH = 'dev' ]
 		then	
         	URL='http://ci.pentaho.com/job/pentaho-cdv/lastSuccessfulBuild/artifact/cdv-pentaho5/dist/*zip*/dist.zip'
         else
-            echo "CDV [stable] not available for Pentaho 5.x."
+	    	URL='http://ctools.pentaho.com/files/cdv/15.04.16/5.x/dist.zip'
         fi
 	fi
 	download_file "CDV" "$URL" "dist.zip" ".tmp/cdv"
@@ -463,7 +470,7 @@ downloadSaiku (){
 		then
             echo 'SAIKU [trunk] not available for download. downloading stable'
         fi	    
-        URL='http://meteorite.bi/downloads/saiku-plugin-p5-3.0.6.zip'
+        URL='http://meteorite.bi/downloads/saiku-plugin-p5-3.1.8.zip'
 		download_file "SAIKU" "$URL" "saiku-plugin.zip" ".tmp"
 	fi
 	echo "Done"
@@ -628,6 +635,14 @@ installCDV (){
 installSaiku (){
 	rm -rf $SOLUTION_DIR/system/saiku
 	unzip -o .tmp/saiku-plugin*zip -d "$SOLUTION_DIR/system/" > /dev/null
+
+	LIB_DIR=$WEBAPP_PATH/WEB-INF/lib
+	SAIKU_DIR=$SOLUTION_DIR/system/saiku/lib
+
+	# http://stackoverflow.com/questions/18721314/cube-in-analysis-view-not-showing-in-saiku-analytics
+	# it still works for 5.3
+	mv -v $SAIKU_DIR/saiku-olap-util*.jar $LIB_DIR
+	rm -v $SAIKU_DIR/mondrian*.jar $SAIKU_DIR/olap4j*.jar $SAIKU_DIR/eigenbase*.jar
 }
 
 installSaikuAdhoc (){
